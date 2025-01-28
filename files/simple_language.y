@@ -1,3 +1,4 @@
+%{
 #include <iostream>
 #include <string>
 #include <map>
@@ -32,9 +33,8 @@ statement_list: statement
     | statement_list statement
     ;
 
-statement:
-      assignment SEMI
-    | expression ':' { /* ... */ }
+statement: assignment SEMI
+    | expression ':'          { std::cout << "Variable asignada con valor: " << $1 << std::endl; }
 
     | error SEMI
       {
