@@ -1,9 +1,13 @@
-%{
 #include <iostream>
 #include <string>
 #include <map>
 static std::map<std::string, int> vars;
-inline void yyerror(const char *str) { std::cout << str << std::endl; }
+inline void yyerror(const char *s) {
+    if (std::string(s) == "syntax error") {
+        return;
+    }
+    std::cout << "Parser error: " << s << std::endl;
+}
 int yylex();
 %}
 
@@ -28,25 +32,48 @@ statement_list: statement
     | statement_list statement
     ;
 
-statement: assignment SEMI
-    | expression ':'          { std::cout << "Variable asignada con valor: " << $1 << std::endl; }
+statement:
+      assignment SEMI
+    | expression ':' { /* ... */ }
+
+    | error SEMI
+      {
+        yyerror("Error sintáctico en statement.");
+        yyerrok;      
+      }
     ;
 
+
 assignment: ID '=' expression
-    { 
-        printf("Assign %s = %d\n", $1->c_str(), $3); 
-        $$ = vars[*$1] = $3; 
+    {   
+        $$ = vars[*$1] = $3;
+        printf("Assign %s = %d\n", $1->c_str(), $3);  
         delete $1;
     }
     ;
 
 expression: NUMBER                  { $$ = $1; }
-    | ID                            { $$ = vars[*$1];      delete $1; }
+    | ID                            {
+        if (vars.find(*$1) == vars.end()) {
+            std::cerr << "Warning: variable '" << *$1 << "' no inicializada. Valor = 0" << std::endl;
+            $$ = 0;
+        } else {
+            $$ = vars[*$1];
+        }
+        delete $1;
+      }
     | expression '+' expression     { $$ = $1 + $3; }
     | expression '-' expression     { $$ = $1 - $3; }
     | expression '*' expression     { $$ = $1 * $3; }
-    | expression '/' expression     { $$ = $1 / $3; }
-    | '(' expression ')'            { $$ = $2; }
+    | expression '/' expression     {
+        if ($3 == 0) {
+            std::cerr << "Error: División entre 0." << std::endl;
+            $$ = 0;
+        } else {
+            $$ = $1 / $3;
+        }
+      }
+    | '(' expression ')'            { $$ = $2; } 
     ;
 
 %%
