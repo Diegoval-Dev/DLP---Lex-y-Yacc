@@ -73,7 +73,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 10 "./files/simple_language.y"
+#line 15 "./files/simple_language.y"
  int num; std::string *str; 
 
 #line 80 "y.tab.h"
